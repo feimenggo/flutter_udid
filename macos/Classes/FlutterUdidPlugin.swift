@@ -1,6 +1,6 @@
 import Cocoa
 import FlutterMacOS
-import SAMKeychain
+// import SAMKeychain
 import IOKit
 
 public class FlutterUdidPlugin: NSObject, FlutterPlugin {
@@ -20,26 +20,26 @@ public class FlutterUdidPlugin: NSObject, FlutterPlugin {
   }
 
   private func getUniqueDeviceIdentifierAsString(result: FlutterResult) {
-          let bundleName = Bundle.main.infoDictionary!["CFBundleName"] as! String
-          let accountName = Bundle.main.bundleIdentifier!
+//           let bundleName = Bundle.main.infoDictionary!["CFBundleName"] as! String
+//           let accountName = Bundle.main.bundleIdentifier!
+//
+//           var applicationUUID = SAMKeychain.password(forService: bundleName, account: accountName)
+//
+//           if applicationUUID == nil {
 
-          var applicationUUID = SAMKeychain.password(forService: bundleName, account: accountName)
+              var applicationUUID = (self.hardwareUUID())!
+//               let query = SAMKeychainQuery()
+//               query.service = bundleName
+//               query.account = accountName
+//               query.password = applicationUUID
+//               query.synchronizationMode = SAMKeychainQuerySynchronizationMode.no
 
-          if applicationUUID == nil {
-
-              applicationUUID = (self.hardwareUUID())!
-              let query = SAMKeychainQuery()
-              query.service = bundleName
-              query.account = accountName
-              query.password = applicationUUID
-              query.synchronizationMode = SAMKeychainQuerySynchronizationMode.no
-
-              do {
-                  try query.save()
-              } catch let error as NSError {
-                  print("SAMKeychainQuery Exception: \(error)")
-              }
-          }
+//               do {
+//                   try query.save()
+//               } catch let error as NSError {
+//                   print("SAMKeychainQuery Exception: \(error)")
+//               }
+//           }
 
           if(applicationUUID==nil||applicationUUID==""){
               result(FlutterError.init(code: "UNAVAILABLE",
