@@ -1,7 +1,7 @@
 import Cocoa
 import FlutterMacOS
-// import SAMKeychain
 import IOKit
+import KeychainAccess
 
 public class FlutterUdidPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
@@ -13,50 +13,50 @@ public class FlutterUdidPlugin: NSObject, FlutterPlugin {
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
     case "getUDID":
-      self.getUniqueDeviceIdentifierAsString(result: result);
+      self.getUniqueDeviceIdentifierAsString(result: result)
     default:
       result(FlutterMethodNotImplemented)
     }
   }
 
   private func getUniqueDeviceIdentifierAsString(result: FlutterResult) {
-//           let bundleName = Bundle.main.infoDictionary!["CFBundleName"] as! String
-//           let accountName = Bundle.main.bundleIdentifier!
-//
-//           var applicationUUID = SAMKeychain.password(forService: bundleName, account: accountName)
-//
-//           if applicationUUID == nil {
+    let bundleName = Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "flutter_udid"
+    let accountName = Bundle.main.bundleIdentifier ?? "com.default.app"
 
-              var applicationUUID = (self.hardwareUUID())!
-//               let query = SAMKeychainQuery()
-//               query.service = bundleName
-//               query.account = accountName
-//               query.password = applicationUUID
-//               query.synchronizationMode = SAMKeychainQuerySynchronizationMode.no
+    // Use KeychainAccess with same structure as iOS implementation
+    let keychain = Keychain(service: bundleName).synchronizable(false)
 
-//               do {
-//                   try query.save()
-//               } catch let error as NSError {
-//                   print("SAMKeychainQuery Exception: \(error)")
-//               }
-//           }
+    // Try to read existing UUID from keychain
+    if let applicationUUID = try? keychain.get(accountName), !applicationUUID.isEmpty {
+      result(applicationUUID)
+      return
+    }
 
-          if(applicationUUID==nil||applicationUUID==""){
-              result(FlutterError.init(code: "UNAVAILABLE",
-                                       message: "UDID not available",
-                                       details: nil));
-          }else{
-              result(applicationUUID)
-          }
+    // Generate new UUID if none exists
+    guard let hardwareUUID = self.hardwareUUID(), !hardwareUUID.isEmpty else {
+      result(FlutterError(code: "UNAVAILABLE",
+                         message: "UDID not available",
+                         details: nil))
+      return
+    }
+
+    // Save the new UUID to keychain
+    do {
+      try keychain.set(hardwareUUID, key: accountName)
+      result(hardwareUUID)
+    } catch {
+      result(FlutterError(code: "UNAVAILABLE",
+                         message: "UDID not available",
+                         details: nil))
+    }
   }
 
-  private func hardwareUUID() -> String?
-  {
-      let matchingDict = IOServiceMatching("IOPlatformExpertDevice")
-      let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, matchingDict)
-      defer{ IOObjectRelease(platformExpert) }
+  private func hardwareUUID() -> String? {
+    let matchingDict = IOServiceMatching("IOPlatformExpertDevice")
+    let platformExpert = IOServiceGetMatchingService(kIOMasterPortDefault, matchingDict)
+    defer { IOObjectRelease(platformExpert) }
 
-      guard platformExpert != 0 else { return nil }
-      return IORegistryEntryCreateCFProperty(platformExpert, kIOPlatformUUIDKey as CFString, kCFAllocatorDefault, 0).takeRetainedValue() as? String
+    guard platformExpert != 0 else { return nil }
+    return IORegistryEntryCreateCFProperty(platformExpert, kIOPlatformUUIDKey as CFString, kCFAllocatorDefault, 0).takeRetainedValue() as? String
   }
 }
