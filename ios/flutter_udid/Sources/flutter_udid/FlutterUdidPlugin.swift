@@ -1,6 +1,6 @@
 import Flutter
 import UIKit
-import KeychainAccess
+// import KeychainAccess
 
 public class FlutterUdidPlugin: NSObject, FlutterPlugin {
 
@@ -20,17 +20,17 @@ public class FlutterUdidPlugin: NSObject, FlutterPlugin {
   }
 
   private func getUniqueDeviceIdentifierAsString(result: FlutterResult) {
-    let bundleName = Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "flutter_udid"
-    let accountName = Bundle.main.bundleIdentifier ?? "com.default.app"
-
-    // Use KeychainAccess with same structure as original SAMKeychain implementation
-    let keychain = Keychain(service: bundleName).synchronizable(false)
-
-    // Try to read existing UUID from keychain
-    if let applicationUUID = try? keychain.get(accountName), !applicationUUID.isEmpty {
-      result(applicationUUID)
-      return
-    }
+//     let bundleName = Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "flutter_udid"
+//     let accountName = Bundle.main.bundleIdentifier ?? "com.default.app"
+//
+//     // Use KeychainAccess with same structure as original SAMKeychain implementation
+//     let keychain = Keychain(service: bundleName).synchronizable(false)
+//
+//     // Try to read existing UUID from keychain
+//     if let applicationUUID = try? keychain.get(accountName), !applicationUUID.isEmpty {
+//       result(applicationUUID)
+//       return
+//     }
 
     // Generate new UUID if none exists
     guard let vendorId = UIDevice.current.identifierForVendor?.uuidString else {
@@ -42,7 +42,7 @@ public class FlutterUdidPlugin: NSObject, FlutterPlugin {
 
     // Save the new UUID to keychain
     do {
-      try keychain.set(vendorId, key: accountName)
+//       try keychain.set(vendorId, key: accountName)
       result(vendorId)
     } catch {
       result(FlutterError(code: "UNAVAILABLE",
