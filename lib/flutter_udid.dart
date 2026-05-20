@@ -24,4 +24,10 @@ class FlutterUdid {
     var digest = sha256.convert(bytes);
     return digest.toString();
   }
+
+  /// [仅iOS支持] 强制使用最新的 identifierForVendor 覆盖 Keychain 中的旧值
+  static Future<String> resetUdid() async {
+    final String udid = await _channel.invokeMethod('resetUDID');
+    return udid;
+  }
 }
